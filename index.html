@@ -2,37 +2,160 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>MBTI性格测试</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI 性格测试</title>
     <style>
-        body { font-family: Arial; max-width: 800px; margin: 30px auto; padding: 20px; }
-        .question { margin:15px 0; }
-        button { padding:10px 20px; background:#0969da; color:white; border:none; border-radius:6px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .question {
+            margin: 20px 0;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .question p {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .options label {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        #submitBtn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #0969da;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            margin-top: 30px;
+            cursor: pointer;
+        }
+        #resultBox {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f4ff;
+            border-radius: 8px;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>MBTI 简易性格测试</h1>
-    <div id="test"></div>
-    <button onclick="getResult()">查看结果</button>
-    <div id="result"></div>
+    <div class="container">
+        <h1>MBTI 28题性格测试</h1>
+        <div id="testBox"></div>
+        <button id="submitBtn" onclick="calcResult()">提交并查看结果</button>
+        <div id="resultBox"></div>
+    </div>
 
     <script>
+        // 28道测试题，对应四大维度 E/I S/N T/F J/P
         const questions = [
-            {q:"聚会后你更想独处恢复精力吗？",dim:"E-I"},
-            {q:"你更关注细节而非整体想象吗？",dim:"S-N"},
-            {q:"做决定更看重逻辑而非人情吗？",dim:"T-F"},
-            {q:"你喜欢提前规划而非随性安排吗？",dim:"J-P"}
-        ];
-        let html = "";
-        questions.forEach((item,i)=>{
-            html += `<div class="question">${i+1}. ${item.q}
-                <label><input type="radio" name="q${i}" value="1"> 是</label>
-                <label><input type="radio" name="q${i}" value="0"> 否</label>
-            </div>`;
-        });
-        document.getElementById("test").innerHTML = html;
+            // E/I 外向/内向 7题
+            { q: "聚会结束后，你更需要独处来恢复精力？", dim: "EI", score: -1 },
+            { q: "你更喜欢和多人聊天，而非一对一交流？", dim: "EI", score: 1 },
+            { q: "遇到压力时，你习惯找人倾诉？", dim: "EI", score: 1 },
+            { q: "空闲时间，你更愿意宅家而非外出社交？", dim: "EI", score: -1 },
+            { q: "在团队讨论中，你会主动抢着发言？", dim: "EI", score: 1 },
+            { q: "陌生场合你容易感到局促、不想说话？", dim: "EI", score: -1 },
+            { q: "你认为热闹的氛围能让你更放松？", dim: "EI", score: 1 },
 
-        function getResult(){
-            alert("测试完成！可自行扩展题目与结果判断逻辑");
+            // S/N 实感/直觉 7题
+            { q: "你更关注细节，而非整体可能性？", dim: "SN", score: 1 },
+            { q: "你更喜欢思考未来的创意，而非当下事实？", dim: "SN", score: -1 },
+            { q: "学习时，你更在意实操步骤，而非理论联想？", dim: "SN", score: 1 },
+            { q: "你经常脑补各种可能性、脑洞很大？", dim: "SN", score: -1 },
+            { q: "看说明时，你会逐字仔细阅读？", dim: "SN", score: 1 },
+            { q: "你更容易被抽象概念吸引？", dim: "SN", score: -1 },
+            { q: "你更相信经验，而非灵感猜测？", dim: "SN", score: 1 },
+
+            // T/F 思考/情感 7题
+            { q: "做决定时，你优先考虑逻辑对错，而非人情？", dim: "TF", score: 1 },
+            { q: "看到别人难过，你会优先共情安抚？", dim: "TF", score: -1 },
+            { q: "争论时，你更在意道理，而非照顾对方情绪？", dim: "TF", score: 1 },
+            { q: "你很难拒绝别人的求助请求？", dim: "TF", score: -1 },
+            { q: "评价一件事，你更看重公平而非善意？", dim: "TF", score: 1 },
+            { q: "你常因为心软改变自己的决定？", dim: "TF", score: -1 },
+            { q: "你认为规则比人情更重要？", dim: "TF", score: 1 },
+
+            // J/P 判断/感知 7题
+            { q: "你习惯提前做好计划，不喜欢临时变动？", dim: "JP", score: 1 },
+            { q: "你更喜欢随性安排，走一步看一步？", dim: "JP", score: -1 },
+            { q: "任务截止前，你会早早完成，避免拖延？", dim: "JP", score: 1 },
+            { q: "书桌/手机文件，你习惯整理得很规整？", dim: "JP", score: 1 },
+            { q: "做选择时，你喜欢快速定下来，不纠结？", dim: "JP", score: 1 },
+            { q: "你更享受灵活自由的节奏，讨厌被安排？", dim: "JP", score: -1 },
+            { q: "旅行前，你会提前查好路线和行程？", dim: "JP", score: 1 }
+        ];
+
+        // 渲染题目
+        const testBox = document.getElementById("testBox");
+        questions.forEach((item, idx) => {
+            const div = document.createElement("div");
+            div.className = "question";
+            div.innerHTML = `
+                <p>${idx + 1}. ${item.q}</p >
+                <div class="options">
+                    <label><input type="radio" name="q${idx}" value="1" required> 是</label>
+                    <label><input type="radio" name="q${idx}" value="0"> 否</label>
+                </div>
+            `;
+            testBox.appendChild(div);
+        });
+
+        // 计算结果
+        function calcResult() {
+            let ei = 0, sn = 0, tf = 0, jp = 0;
+            for (let i = 0; i < questions.length; i++) {
+                const sel = document.querySelector(`input[name="q${i}"]:checked`);
+                if (!sel) {
+                    alert("请完成所有题目再提交！");
+                    return;
+                }
+                const val = Number(sel.value);
+                const item = questions[i];
+                const add = val * item.score;
+                switch (item.dim) {
+                    case "EI": ei += add; break;
+                    case "SN": sn += add; break;
+                    case "TF": tf += add; break;
+                    case "JP": jp += add; break;
+                }
+            }
+
+            // 判定类型
+            let res = "";
+            res += ei >= 0 ? "E" : "I";
+            res += sn >= 0 ? "S" : "N";
+            res += tf >= 0 ? "T" : "F";
+            res += jp >= 0 ? "J" : "P";
+
+            // 显示结果
+            const box = document.getElementById("resultBox");
+            box.style.display = "block";
+            box.innerHTML = `<h2>你的MBTI类型：${res}</h2><p>结果解析可根据类型进一步补充，测试完成✅</p >`;
         }
     </script>
 </body>
