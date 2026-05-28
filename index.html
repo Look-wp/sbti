@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>MBTI性格测试</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 30px auto; padding: 20px; }
+        .question { margin:15px 0; }
+        button { padding:10px 20px; background:#0969da; color:white; border:none; border-radius:6px; }
+    </style>
+</head>
+<body>
+    <h1>MBTI 简易性格测试</h1>
+    <div id="test"></div>
+    <button onclick="getResult()">查看结果</button>
+    <div id="result"></div>
+
+    <script>
+        const questions = [
+            {q:"聚会后你更想独处恢复精力吗？",dim:"E-I"},
+            {q:"你更关注细节而非整体想象吗？",dim:"S-N"},
+            {q:"做决定更看重逻辑而非人情吗？",dim:"T-F"},
+            {q:"你喜欢提前规划而非随性安排吗？",dim:"J-P"}
+        ];
+        let html = "";
+        questions.forEach((item,i)=>{
+            html += `<div class="question">${i+1}. ${item.q}
+                <label><input type="radio" name="q${i}" value="1"> 是</label>
+                <label><input type="radio" name="q${i}" value="0"> 否</label>
+            </div>`;
+        });
+        document.getElementById("test").innerHTML = html;
+
+        function getResult(){
+            alert("测试完成！可自行扩展题目与结果判断逻辑");
+        }
+    </script>
+</body>
+</html>
